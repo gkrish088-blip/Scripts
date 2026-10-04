@@ -5,6 +5,10 @@ namespace EvoCreatures.Environment
 {
     public class FoodManager : MonoBehaviour
     {
+        [Header("Visuals")]
+        public GameObject FoodPrefab;
+
+        [Header("Spawn Settings")]
         public float WaterLevelY = 0f;
         public Vector2 LandXRange = new(-20f, 20f);
         public Vector2 LandZRange = new(-20f, -5f);   // land region
@@ -20,6 +24,7 @@ namespace EvoCreatures.Environment
         public float ShiftDuration = 300f; // seconds, tune for POC run length
 
         private readonly List<Vector3> _food = new();
+        private readonly List<GameObject> _foodVisuals = new();
         private float _simTime;
 
         public float CurrentWaterFraction => Mathf.Clamp01(_simTime / ShiftDuration);
@@ -29,7 +34,21 @@ namespace EvoCreatures.Environment
             _simTime += Time.fixedDeltaTime;
 
             while (_food.Count < MaxFoodItems)
-                _food.Add(SpawnPoint());
+            {
+                Vector3 spawnPoint = SpawnPoint();
+                _food.Add(spawnPoint);
+
+                if (FoodPrefab != null)
+                {
+                    GameObject visual = Instantiate(FoodPrefab, spawnPoint, Quaternion.identity, transform);
+                    visual.name = $"Food_{_food.Count - 1}";
+                    _foodVisuals.Add(visual);
+                }
+                else
+                {
+                    _foodVisuals.Add(null);
+                }
+            }
         }
 
         private Vector3 SpawnPoint()
@@ -64,7 +83,11 @@ namespace EvoCreatures.Environment
             {
                 if (Vector3.Distance(position, _food[i]) <= ConsumeRadius)
                 {
+                    if (_foodVisuals[i] != null)
+                        Destroy(_foodVisuals[i]);
+
                     _food.RemoveAt(i);
+                    _foodVisuals.RemoveAt(i);
                     gained += FitnessPerFood;
                 }
             }

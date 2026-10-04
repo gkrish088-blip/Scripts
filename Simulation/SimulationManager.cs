@@ -46,6 +46,16 @@ namespace EvoCreatures.Simulation
 
         private void Start()
         {
+            // The inspector currently stores the FoodManager prefab asset here.
+            // Instantiate it so FixedUpdate can populate the live simulation
+            // and render the food items.
+            if (Food != null && !Food.gameObject.scene.IsValid())
+            {
+                Food = Instantiate(Food);
+                Food.name = "FoodManager_Runtime";
+                Food.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
+            }
+
             _fastForwardActive = FastForwardDurationRealtime > 0f && FastForwardTimeScale > 1f;
             Time.timeScale = _fastForwardActive ? FastForwardTimeScale : 1f;
             _fastForwardEndsAtRealtime = Time.unscaledTime + FastForwardDurationRealtime;
